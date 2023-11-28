@@ -2,7 +2,7 @@ const express = require('express')
 const app = express()
 require('dotenv').config()
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb')
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb')
 const jwt = require('jsonwebtoken')
 const port = process.env.PORT || 5000
 
@@ -51,6 +51,12 @@ async function run() {
             const result = await userTestCollection.insertOne(testItem)
             res.send(result)
         })
+
+        // get all user
+        app.get('/users', async(req,res)=>{
+            const result = await usersCollection.find().toArray()
+            res.send(result)
+        })
         
         // get the test that user booked
         app.get('/userTest', async(req,res)=>{
@@ -65,6 +71,22 @@ async function run() {
             const email = req.query.email
             const query = {email: email}
             const result = await usersCollection.find(query).toArray()
+            res.send(result)
+        })
+
+        //test delete api
+        app.delete('/userTest/:id', async(req,res)=>{
+            const id = req.params.id
+            const query = {_id: new ObjectId(id)}
+            const result = await userTestCollection.deleteOne(query)
+            res.send(result)
+        })
+
+        //user delete api
+        app.delete('/users/:id', async(req,res)=>{
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)}
+            const result = await usersCollection.deleteOne(query)
             res.send(result)
         })
 
