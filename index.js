@@ -35,7 +35,40 @@ const client = new MongoClient(process.env.DB_URI, {
 })
 async function run() {
     try {
+        const allTestCollection = client.db('healthDb').collection('allTests')
         const usersCollection = client.db('healthDb').collection('users')
+        const userTestCollection = client.db('healthDb').collection('test')
+
+        // allTest collection get method
+        app.get('/allTests', async(req,res)=>{
+            const result = await allTestCollection.find().toArray()
+            res.send(result)
+        })
+
+        // post the booking that user booked
+        app.post('/userTest', async(req,res)=>{
+            const testItem = req.body;
+            const result = await userTestCollection.insertOne(testItem)
+            res.send(result)
+        })
+        
+        // get the test that user booked
+        app.get('/userTest', async(req,res)=>{
+            const email = req.query.email
+            const query = {email: email}
+            const result = await userTestCollection.find(query).toArray()
+            res.send(result)
+        })
+
+        //get user details
+        app.get('/userDetails', async(req,res)=>{
+            const email = req.query.email
+            const query = {email: email}
+            const result = await usersCollection.find(query).toArray()
+            res.send(result)
+        })
+
+
         // auth related api
         app.post('/jwt', async (req, res) => {
             const user = req.body
