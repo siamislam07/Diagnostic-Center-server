@@ -74,6 +74,33 @@ async function run() {
             res.send(result)
         })
 
+        // make admin patch 
+        app.patch('/users/admin/:id', async(req,res)=>{
+            const id = req.params
+            const filter = {_id: new ObjectId(id)}
+            const updateDoc = {
+                $set:{
+                    role:'admin',
+                    
+                }
+            }
+            const result = await usersCollection.updateOne(filter, updateDoc)
+            res.send(result)
+        })
+        // make user again
+        app.patch('/users/user/:id', async(req,res)=>{
+            const id = req.params
+            const filter = {_id: new ObjectId(id)}
+            const updateDoc = {
+                $set:{
+                    role:'user',
+                    
+                }
+            }
+            const result = await usersCollection.updateOne(filter, updateDoc)
+            res.send(result)
+        })
+
         //test delete api
         app.delete('/userTest/:id', async(req,res)=>{
             const id = req.params.id
