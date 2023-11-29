@@ -40,61 +40,80 @@ async function run() {
         const userTestCollection = client.db('healthDb').collection('test')
 
         // allTest collection get method
-        app.get('/allTests', async(req,res)=>{
+        app.get('/allTests', async (req, res) => {
             const result = await allTestCollection.find().toArray()
             res.send(result)
         })
 
         // post the booking that user booked
-        app.post('/userTest', async(req,res)=>{
+        app.post('/userTest', async (req, res) => {
             const testItem = req.body;
             const result = await userTestCollection.insertOne(testItem)
             res.send(result)
         })
 
+        //middleware
+        const verifyToken = (req,res,next)=>{
+            console.log(req.headers.authorization);
+            if (!req.headers.authorization) {
+                return res.status(401).send({message: 'unauthorized'})
+            }
+            const token = req.headers.authorization.split(' ')[1];
+            jwt.verify(token, process.env.ACCESS_TOKEN, (err,decoded)=>{
+                if (err) {
+                    return res.status(401).send({message: 'unauthorized'})
+                }
+                req.decoded = decoded
+                next()
+            })
+
+            // next()
+        }
+
         // get all user
-        app.get('/users', async(req,res)=>{
+        app.get('/users',verifyToken, async (req, res) => {
+            
             const result = await usersCollection.find().toArray()
             res.send(result)
         })
-        
+
         // get the test that user booked
-        app.get('/userTest', async(req,res)=>{
+        app.get('/userTest', async (req, res) => {
             const email = req.query.email
-            const query = {email: email}
+            const query = { email: email }
             const result = await userTestCollection.find(query).toArray()
             res.send(result)
         })
 
         //get user details
-        app.get('/userDetails', async(req,res)=>{
+        app.get('/userDetails', async (req, res) => {
             const email = req.query.email
-            const query = {email: email}
+            const query = { email: email }
             const result = await usersCollection.find(query).toArray()
             res.send(result)
         })
 
         // make admin patch 
-        app.patch('/users/admin/:id', async(req,res)=>{
+        app.patch('/users/admin/:id', async (req, res) => {
             const id = req.params
-            const filter = {_id: new ObjectId(id)}
+            const filter = { _id: new ObjectId(id) }
             const updateDoc = {
-                $set:{
-                    role:'admin',
-                    
+                $set: {
+                    role: 'admin',
+
                 }
             }
             const result = await usersCollection.updateOne(filter, updateDoc)
             res.send(result)
         })
         // make user again
-        app.patch('/users/user/:id', async(req,res)=>{
+        app.patch('/users/user/:id', async (req, res) => {
             const id = req.params
-            const filter = {_id: new ObjectId(id)}
+            const filter = { _id: new ObjectId(id) }
             const updateDoc = {
-                $set:{
-                    role:'user',
-                    
+                $set: {
+                    role: 'user',
+
                 }
             }
             const result = await usersCollection.updateOne(filter, updateDoc)
@@ -102,36 +121,29 @@ async function run() {
         })
 
         //test delete api
-        app.delete('/userTest/:id', async(req,res)=>{
+        app.delete('/userTest/:id', async (req, res) => {
             const id = req.params.id
-            const query = {_id: new ObjectId(id)}
+            const query = { _id: new ObjectId(id) }
             const result = await userTestCollection.deleteOne(query)
             res.send(result)
         })
 
         //user delete api
-        app.delete('/users/:id', async(req,res)=>{
+        app.delete('/users/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: new ObjectId(id)}
+            const query = { _id: new ObjectId(id) }
             const result = await usersCollection.deleteOne(query)
             res.send(result)
         })
+
+        
 
 
         // auth related api
         app.post('/jwt', async (req, res) => {
             const user = req.body
-            console.log('I need a new jwt', user)
-            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-                expiresIn: '365d',
-            })
-            res
-                .cookie('token', token, {
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV === 'production',
-                    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-                })
-                .send({ success: true })
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN, { expiresIn: '3h' })
+            res.send({ token })
         })
 
         // Logout
