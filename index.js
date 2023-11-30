@@ -69,7 +69,7 @@ async function run() {
             res.send(result)
         })
 
-        app.path('/allTests/:id', async (req, res) => {
+        app.patch('/allTests/:id', async (req, res) => {
             const test = req.body
             const id = req.params.id
             const filter = { _id: new ObjectId(id) }
@@ -114,6 +114,11 @@ async function run() {
             const email = req.query.email
             const query = { email: email }
             const result = await userTestCollection.find(query).toArray()
+            res.send(result)
+        })
+
+        app.get('/userSingleTest', async(req,res)=>{
+            const result = await userTestCollection.find().toArray()
             res.send(result)
         })
 
@@ -169,7 +174,7 @@ async function run() {
         })
 
         //test delete api
-        app.delete('/userTest/:id', verifyToken, verifyAdmin, async (req, res) => {
+        app.delete('/userTest/:id', verifyToken, async (req, res) => {
             const id = req.params.id
             const query = { _id: new ObjectId(id) }
             const result = await userTestCollection.deleteOne(query)
@@ -184,26 +189,6 @@ async function run() {
             res.send(result)
         })
 
-
-
-
-
-
-        // Logout
-        app.get('/logout', async (req, res) => {
-            try {
-                res
-                    .clearCookie('token', {
-                        maxAge: 0,
-                        secure: process.env.NODE_ENV === 'production',
-                        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-                    })
-                    .send({ success: true })
-                console.log('Logout successful')
-            } catch (err) {
-                res.status(500).send(err)
-            }
-        })
 
         // Save or modify user email, status in DB
         app.put('/users/:email', async (req, res) => {
@@ -225,10 +210,10 @@ async function run() {
         })
 
         // Send a ping to confirm a successful connection
-        await client.db('admin').command({ ping: 1 })
-        console.log(
-            'Pinged your deployment. You successfully connected to MongoDB!'
-        )
+        // await client.db('admin').command({ ping: 1 })
+        // console.log(
+        //     'Pinged your deployment. You successfully connected to MongoDB!'
+        // )
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
